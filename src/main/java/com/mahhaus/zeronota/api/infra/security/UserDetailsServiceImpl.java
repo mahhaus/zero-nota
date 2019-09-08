@@ -1,7 +1,7 @@
-package com.mahhaus.zeronota.api.security;
+package com.mahhaus.zeronota.api.infra.security;
 
-import com.mahhaus.zeronota.domain.UserRepository;
-import com.mahhaus.zeronota.domain.entity.User;
+import com.mahhaus.zeronota.api.users.UserRepository;
+import com.mahhaus.zeronota.api.users.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,6 +1,6 @@
-package com.mahhaus.zeronota.domain;
+package com.mahhaus.zeronota.api.carro;
 
-import com.mahhaus.zeronota.domain.entity.Carro;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -10,5 +10,6 @@ import java.util.List;
  * Create 02/09/2019
  */
 public interface CarroRepository extends JpaRepository<Carro, Long> {
-    List<Carro> findByTipo(String tipo);
+
+    List<Carro> findByTipo(String tipo, Pageable pageable);
 }

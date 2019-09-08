@@ -1,6 +1,5 @@
-package com.mahhaus.zeronota.domain.dto;
+package com.mahhaus.zeronota.api.carro;
 
-import com.mahhaus.zeronota.domain.entity.Carro;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
 

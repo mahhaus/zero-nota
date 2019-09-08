@@ -1,4 +1,4 @@
-package com.mahhaus.zeronota.domain.entity;
+package com.mahhaus.zeronota.api.users;
 
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;

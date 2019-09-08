@@ -1,4 +1,4 @@
-package com.mahhaus.zeronota.domain.entity;
+package com.mahhaus.zeronota.api.carro;
 
 
 import lombok.*;

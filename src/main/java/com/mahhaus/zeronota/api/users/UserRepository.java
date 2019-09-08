@@ -1,6 +1,5 @@
-package com.mahhaus.zeronota.domain;
+package com.mahhaus.zeronota.api.users;
 
-import com.mahhaus.zeronota.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

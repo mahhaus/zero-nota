@@ -1,8 +1,8 @@
 package com.mahhaus.zeronota.api;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author josias.soares
@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 public class IndexController {
 
     @GetMapping
-    String get(){
+    String get() {
         return "GET Spring Boot";
     }
-
-    @GetMapping("/userInfo")
-    public UserDetails userInfo(@AuthenticationPrincipal UserDetails userDetails){
-        return userDetails;
-    }
+//
+//    @GetMapping("/userInfo")
+//    public UserDetails userInfo(@AuthenticationPrincipal UserDetails userDetails){
+//        return userDetails;
+//    }
 }

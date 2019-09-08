@@ -1,13 +1,20 @@
-package com.mahhaus.zeronota.api.security;
+package com.mahhaus.zeronota.api.infra.security;
 
+import com.mahhaus.zeronota.api.infra.security.jwt.JwtAuthenticationFilter;
+import com.mahhaus.zeronota.api.infra.security.jwt.JwtAuthorizationFilter;
+import com.mahhaus.zeronota.api.infra.security.jwt.handler.AccessDeniedHandler;
+import com.mahhaus.zeronota.api.infra.security.jwt.handler.UnauthorizedHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -24,14 +31,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Qualifier("userDetailsService")
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private UnauthorizedHandler unauthorizedHandler;
+
+    @Autowired
+    private AccessDeniedHandler accessDeniedHandler;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        AuthenticationManager authManager = authenticationManager();
+
         http
                 .authorizeRequests()
+                .antMatchers(HttpMethod.GET, "/api/v1/login").permitAll()
+                .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**", "/webjars/**")
+                .permitAll()
                 .anyRequest().authenticated()
+                .and().csrf().disable()
+                .addFilter(new JwtAuthenticationFilter(authManager))
+                .addFilter(new JwtAuthorizationFilter(authManager, userDetailsService))
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler)
+                .authenticationEntryPoint(unauthorizedHandler)
                 .and()
-                .httpBasic()
-        .and().csrf().disable();
+                // Removendo os cookies
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     @Override
@@ -39,12 +63,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         BCryptPasswordEncoder encoder  = new BCryptPasswordEncoder();
 
         auth.userDetailsService(userDetailsService).passwordEncoder(encoder);
-
-//        auth
-//                .inMemoryAuthentication().passwordEncoder(encoder)
-//                .withUser("admin").password(encoder.encode("luiza.2014")).roles("USER","ADMIN")
-//                .and()
-//                .withUser("josias").password(encoder.encode("luiza.2014")).roles("USER");
-
     }
 }

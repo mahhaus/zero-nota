@@ -1,9 +1,7 @@
-package com.mahhaus.zeronota.api;
+package com.mahhaus.zeronota.api.carro;
 
-import com.mahhaus.zeronota.domain.entity.Carro;
-import com.mahhaus.zeronota.domain.CarroService;
-import com.mahhaus.zeronota.domain.dto.CarroDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +21,11 @@ public class CarrosController {
     private CarroService service;
 
     @GetMapping()
-    public ResponseEntity get() {
-        List<CarroDTO> carros = service.getCarros();
+    public ResponseEntity get(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size
+                              ) {
+        List<CarroDTO> carros = service.getCarros(PageRequest.of(page, size));
         return ResponseEntity.ok(carros);
     }
 
@@ -37,14 +38,17 @@ public class CarrosController {
     }
 
     @GetMapping("/tipo/{tipo}")
-    public ResponseEntity getCarrosByTipo(@PathVariable("tipo") String tipo) {
-        List<CarroDTO> carros = service.getCarrosByTipo(tipo);
+    public ResponseEntity getCarrosByTipo(@PathVariable("tipo") String tipo,
+                                          @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                          @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        List<CarroDTO> carros = service.getCarrosByTipo(tipo, PageRequest.of(page, size));
         return carros.isEmpty() ?
                 ResponseEntity.noContent().build() :
                 ResponseEntity.ok(carros);
     }
 
     @PostMapping
+    @Secured({ "ROLE_ADMIN" })
     public ResponseEntity post(@RequestBody Carro carro) {
 
         CarroDTO c = service.insert(carro);

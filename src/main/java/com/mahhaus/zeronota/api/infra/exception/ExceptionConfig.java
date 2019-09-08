@@ -1,4 +1,4 @@
-package com.mahhaus.zeronota.api.exception;
+package com.mahhaus.zeronota.api.infra.exception;
 
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.dao.EmptyResultDataAccessException;
