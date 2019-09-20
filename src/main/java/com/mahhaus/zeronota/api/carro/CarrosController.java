@@ -53,13 +53,9 @@ public class CarrosController {
 
         CarroDTO c = service.insert(carro);
 
-        URI location = getUri(c.getId());
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(c.getId()).toUri();
         return ResponseEntity.created(location).build();
-    }
-
-    private URI getUri(Long id) {
-        return ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(id).toUri();
     }
 
     @PutMapping("/{id}")
