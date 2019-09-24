@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.mahhaus.zeronota.util.StringUtils.DATETIME_REGEX;
+import static com.mahhaus.zeronota.util.StringUtils.NFCE_REGEX;
 
 /**
  * Created by josias.soares on 01/02/2018.
@@ -30,7 +31,7 @@ public class MapperAM implements INFCe {
 
         try {
 
-            String pChave = NFCe.getChaveByUrl(pUrl);
+            String pChave = StringUtils.getStringByRegex(pUrl, NFCE_REGEX);
 
             Element conteudo = Jsoup.connect(pUrl.contains("http") ? pUrl : "http://" + pUrl).get().getElementById("tbLeiauteDANFENFCe");
 

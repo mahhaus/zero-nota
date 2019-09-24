@@ -1,19 +1,26 @@
 package com.mahhaus.zeronota.api.nfce;
 
+import com.gargoylesoftware.htmlunit.*;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.javascript.background.JavaScriptJobManager;
 import com.mahhaus.zeronota.api.nfce.mapper.*;
-import com.mahhaus.zeronota.util.NumberUtil;
-import org.jsoup.HttpStatusException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import com.mahhaus.zeronota.util.StringUtils;
+import org.apache.http.protocol.RequestUserAgent;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
 
-import java.net.MalformedURLException;
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Base64;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.mahhaus.zeronota.util.StringUtils.NFCE_REGEX;
 
 /**
  * Created by josias.soares on 01/02/2018.
@@ -23,13 +30,14 @@ import java.util.regex.Pattern;
 public class NFCe {
     private static final String NFCE_REGEX = "[0-9]{44}";
     private static final int SERVICE_UNAVAILABLE = 503;
+    private static final String newLine  = System.getProperty("line.separator");
 
     public static void main(String[] args) {
         try {
             // TODO: 14/09/2019 Brasilia nao vem o link vem só os parametros
             //  ?chNFe=53170711759085000102650010000000011000000045&nVersao=100&tpAmb=1&cDest=86346741187&dhEmi=323031372D30372D30375431353A34343A30302D30333A3030&vNF=50.00&vICMS=0.00&digVal=675643374B595566695958375556636C46554D34336F56342F376F3D&cIdToken=&cHashQRCode=358e3bc508ea11032be96e97cd92d4228aea05d0
 //            String originalUrl = "http://www.fazenda.df.gov.br/nfce/qrcode?chNFe=53170711759085000102650010000000011000000045&nVersao=100&tpAmb=1&cDest=86346741187&dhEmi=323031372D30372D30375431353A34343A30302D30333A3030&vNF=50.00&vICMS=0.00&digVal=675643374B595566695958375556636C46554D34336F56342F376F3D&cIdToken=&cHashQRCode=358e3bc508ea11032be96e97cd92d4228aea05d0";
-            String originalUrl = "http://dec.fazenda.df.gov.br/ConsultarNFCe.aspx?chNFe=53170711759085000102650010000000011000000045&nVersao=100&tpAmb=1&cDest=86346741187&dhEmi=323031372D30372D30375431353A34343A30302D30333A3030&vNF=50.00&vICMS=0.00&digVal=675643374B595566695958375556636C46554D34336F56342F376F3D&cIdToken=&cHashQRCode=358e3bc508ea11032be96e97cd92d4228aea05d0";
+//            String originalUrl = "http://dec.fazenda.df.gov.br/ConsultarNFCe.aspx?chNFe=53170711759085000102650010000000011000000045&nVersao=100&tpAmb=1&cDest=86346741187&dhEmi=323031372D30372D30375431353A34343A30302D30333A3030&vNF=50.00&vICMS=0.00&digVal=675643374B595566695958375556636C46554D34336F56342F376F3D&cIdToken=&cHashQRCode=358e3bc508ea11032be96e97cd92d4228aea05d0";
 //            String originalUrl = "http://dec.fazenda.df.gov.br/ConsultarNFCe.aspx?chNFe=53170800306597005670650390000000101101663095&nVersao=100&tpAmb=2&dhEmi=323031372d30382d30375431303a34313a32342d30333a3030&vNF=10.00&vICMS=0.00&digVal=52497a622f3952625046717a4b77324e4e54644545654e413753553d&cIdToken=000001&cHashQRCode=82060D62CB35C06F264F40E8125152AEE1E34186";
 
 //            String originalUrl = "https://sistemas.sefaz.am.gov.br/nfceweb-hom/consultarNFCe.jsp?chNFe=13160253113791000122650120000000479000000470&nVersao=100&tpAmb=2&cDest=16415434853&dhEmi=323031362d30322d32335430393a30393a34382d30343a3030&vNF=100.00&vICMS=12.00&digVal=74787147546d4670487959527a68464d41345058532f32385565593d&cIdToken=000001&cHashQRCode=AC1478233B8C9AA701FB7B816A7CA6F723516972";
@@ -45,8 +53,8 @@ public class NFCe {
 //            String originalUrl = "http://www.dfeportal.fazenda.pr.gov.br/dfe-portal/rest/servico/consultaNFCe?chNFe=41180111237588000118650010001489221001489224&nVersao=100&tpAmb=1&dhEmi=323031382d30312d31305431323a35393a30332d30323a3030&vNF=10.00&vICMS=0.00&digVal=39696b7939316d35305051513032685a74756175737954444835593d&cIdToken=000001&cHashQRCode=E2CD722C5A2C984D685AB1D63B384135E128FFB3";
             // aHR0cDovL3d3dy5kZmVwb3J0YWwuZmF6ZW5kYS5wci5nb3YuYnIvZGZlLXBvcnRhbC9yZXN0L3NlcnZpY28vY29uc3VsdGFORkNlP2NoTkZlPTQxMTgwMTExMjM3NTg4MDAwMTE4NjUwMDEwMDAxNDg5MjIxMDAxNDg5MjI0Jm5WZXJzYW89MTAwJnRwQW1iPTEmZGhFbWk9MzIzMDMxMzgyZDMwMzEyZDMxMzA1NDMxMzIzYTM1MzkzYTMwMzMyZDMwMzIzYTMwMzAmdk5GPTEwLjAwJnZJQ01TPTAuMDAmZGlnVmFsPTM5Njk2Yjc5MzkzMTZkMzUzMDUwNTE1MTMwMzI2ODVhNzQ3NTYxNzU3Mzc5NTQ0NDQ4MzU1OTNkJmNJZFRva2VuPTAwMDAwMSZjSGFzaFFSQ29kZT1FMkNENzIyQzVBMkM5ODRENjg1QUIxRDYzQjM4NDEzNUUxMjhGRkIz
 
-            String encodedUrl = Base64.getUrlEncoder().encodeToString(originalUrl.getBytes());
-            System.out.println(encodedUrl);
+//            String encodedUrl = Base64.getUrlEncoder().encodeToString(originalUrl.getBytes());
+//            System.out.println(encodedUrl);
 
 
 //            pr : aHR0cDovL3d3dy5kZmVwb3J0YWwuZmF6ZW5kYS5wci5nb3YuYnIvZGZlLXBvcnRhbC9yZXN0L3NlcnZpY28vY29uc3VsdGFORkNlP2NoTkZlPTQxMTgwMTExMjM3NTg4MDAwMTE4NjUwMDEwMDAxNDg5MjIxMDAxNDg5MjI0Jm5WZXJzYW89MTAwJnRwQW1iPTEmZGhFbWk9MzIzMDMxMzgyZDMwMzEyZDMxMzA1NDMxMzIzYTM1MzkzYTMwMzMyZDMwMzIzYTMwMzAmdk5GPTEwLjAwJnZJQ01TPTAuMDAmZGlnVmFsPTM5Njk2Yjc5MzkzMTZkMzUzMDUwNTE1MTMwMzI2ODVhNzQ3NTYxNzU3Mzc5NTQ0NDQ4MzU1OTNkJmNJZFRva2VuPTAwMDAwMSZjSGFzaFFSQ29kZT1FMkNENzIyQzVBMkM5ODRENjg1QUIxRDYzQjM4NDEzNUUxMjhGRkIz
@@ -72,13 +80,73 @@ public class NFCe {
 //        } catch (MalformedURLException e) {
 //            System.out.println("Url invalida");
 //            e.printStackTrace();
+
+            /*URL url = new URL("http://www4.fazenda.rj.gov.br/consultaNFCe/QRCode?" +
+                    "chNFe=33141218384559000128650010000000091000000097&nVersao=100&tpAmb=1&dhEmi=323031342d31322d30315431333a32303a32312d30323a3030&vNF=15.00&vICMS=0.95" +
+                    "&digVal=644e426370555075613737474c4179773144542f4676532b676b383d&cIdToken=000002&cHashQRCode=f4e7d1001787d83273458fdd942768581bd802f7");
+
+         WebClient webClient = new WebClient(BrowserVersion.CHROME);
+            webClient.getOptions().setJavaScriptEnabled(true);
+            webClient.getOptions().setThrowExceptionOnScriptError(false);
+            webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+
+            WebRequest request = new WebRequest(url);
+            HtmlPage page = webClient.getPage(request);
+
+            int i = webClient.waitForBackgroundJavaScript(6000);
+
+            while (i > 0)
+            {
+                i = webClient.waitForBackgroundJavaScript(6000);
+
+                if (i == 0)
+                {
+                    break;
+                }
+                synchronized (page)
+                {
+                    System.out.println("wait=================================================================");
+                    page.wait(1000);
+                }
+            }
+
+            webClient.getAjaxController().processSynchron(page, request, false);
+
+            System.out.println(page.asXml());
+*/
+
+            URL url = new URL("http://www4.fazenda.rj.gov.br/consultaNFCe/QRCode?" +
+                    "chNFe=33141218384559000128650010000000091000000097&nVersao=100&tpAmb=1&dhEmi=323031342d31322d30315431333a32303a32312d30323a3030&vNF=15.00&vICMS=0.95" +
+                    "&digVal=644e426370555075613737474c4179773144542f4676532b676b383d&cIdToken=000002&cHashQRCode=f4e7d1001787d83273458fdd942768581bd802f7");
+
+            WebClient webClient = new WebClient();
+            WebDriver webDriver = new PhantomJSDriver();
+
+            webDriver.manage().timeouts().implicitlyWait(120, TimeUnit.SECONDS);
+            webDriver.navigate().to(url);
+
+//            webClient.getOptions().setJavaScriptEnabled(true);
+//            webClient.getOptions().setThrowExceptionOnScriptError(false);
+            HtmlPage page = null;
+            try {
+                page = webClient.getPage(url);
+            } catch (Exception e) {
+                System.out.println("Get page error");
+            }
+            JavaScriptJobManager manager = page.getEnclosingWindow().getJobManager();
+            while (manager.getJobCount() > 0) {
+                Thread.sleep(100);
+            }
+            System.out.println(page.asXml());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+
     public static NotaFiscal getNfce(String url) {
-        int uf = Integer.parseInt(getChaveByUrl(url).substring(0, 2));
+        int uf = Integer.parseInt(StringUtils.getStringByRegex(url, NFCE_REGEX).substring(0, 2));
 
         switch (uf) {
 //            case PropsEstados.Codigo.RO:
@@ -106,8 +174,8 @@ public class NFCe {
 //                return new MapperRN().getNfce(pDocument);
 //            case PropsEstados.Codigo.PB:
 //                return new MapperPB().getNfce(pDocument);
-//            case PropsEstados.Codigo.PE:
-//                return new MapperPE().getNfce(pDocument);
+            case PropsEstados.Codigo.PE:
+                return new ScrapingPE().getNFCe(url);
 //            case PropsEstados.Codigo.AL:
 //                return new MapperAL().getNfce(pDocument);
 //            case PropsEstados.Codigo.SE:
@@ -119,11 +187,11 @@ public class NFCe {
 //            case PropsEstados.Codigo.ES:
 //                return new MapperES().getNfce(pDocument);
             case PropsEstados.Codigo.RJ:
-                return new MapperRJ().getNFCe(url);
+                return new ScrapingRJ().getNFCe(url);
 //            case PropsEstados.Codigo.SP:
 //                return new MapperSP().getNfce(pDocument);
             case PropsEstados.Codigo.PR:
-                return new MapperPR().getNFCe(url);
+                return new ScrapingPR().getNFCe(url);
 //            case PropsEstados.Codigo.SC:
 //                return new MapperSC().getNfce(pDocument);
             case PropsEstados.Codigo.RS:
@@ -136,19 +204,9 @@ public class NFCe {
 //                return new MapperGO().getNfce(pDocument);
             case PropsEstados.Codigo.DF:
                 url = "http://www.fazenda.df.gov.br/nfce/qrcode" + url;
-                return new MapperDF().getNFCe(url);
+                return new ScrapingDF().getNFCe(url);
             default:
                 return null;
         }
-    }
-
-    public static String getChaveByUrl(String pUrl) {
-        Pattern pattern = Pattern.compile(NFCE_REGEX);
-        Matcher matcher = pattern.matcher(pUrl);
-        String pChave = "";
-        while (matcher.find()) {
-            pChave = matcher.group();
-        }
-        return pChave;
     }
 }

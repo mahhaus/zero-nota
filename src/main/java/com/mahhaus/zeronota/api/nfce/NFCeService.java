@@ -1,6 +1,7 @@
 package com.mahhaus.zeronota.api.nfce;
 
 import com.mahhaus.zeronota.api.infra.exception.ObjectNotFoundException;
+import com.mahhaus.zeronota.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,8 @@ import org.springframework.util.Assert;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.mahhaus.zeronota.util.StringUtils.NFCE_REGEX;
 
 /**
  * @author josias.soares
@@ -40,7 +43,7 @@ public class NFCeService {
         Assert.isTrue(!url.isEmpty(),"Nota fiscal não encontrada!");
 
         try {
-            return getNFCeByChave(NFCe.getChaveByUrl(url));
+            return getNFCeByChave(StringUtils.getStringByRegex(url, NFCE_REGEX));
         } catch (ObjectNotFoundException e) {
             NotaFiscal notaFiscal = NFCe.getNfce(url);
 

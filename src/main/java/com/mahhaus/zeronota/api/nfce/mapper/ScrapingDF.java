@@ -6,5 +6,5 @@ package com.mahhaus.zeronota.api.nfce.mapper;
  * 13:02
  */
 
-public class MapperPR extends MapperBase {
+public class ScrapingDF extends ScrapingBase {
 }

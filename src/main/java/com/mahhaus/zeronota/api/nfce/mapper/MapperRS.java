@@ -4,6 +4,7 @@ import com.mahhaus.zeronota.api.nfce.NFCe;
 import com.mahhaus.zeronota.api.nfce.NotaFiscal;
 import com.mahhaus.zeronota.api.nfce.Produto;
 import com.mahhaus.zeronota.util.NumberUtil;
+import com.mahhaus.zeronota.util.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -14,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.mahhaus.zeronota.util.StringUtils.NFCE_REGEX;
 
 /**
  * Created by josias.soares on 01/02/2018.
@@ -30,7 +33,7 @@ public class MapperRS implements INFCe {
 
         try {
 
-            String pChave = NFCe.getChaveByUrl(pUrl);
+            String pChave = StringUtils.getStringByRegex(pUrl, NFCE_REGEX);;
             String url = "https://www.sefaz.rs.gov.br/ASP/AAE_ROOT/NFE/SAT-WEB-NFE-NFC_2.asp?HML=false&chaveNFe=" +
                     pChave + "&Action=Avan%E7ar";
 

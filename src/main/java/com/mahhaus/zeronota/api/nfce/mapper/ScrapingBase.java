@@ -16,12 +16,13 @@ import java.util.Date;
 import java.util.List;
 
 import static com.mahhaus.zeronota.util.StringUtils.DATETIME_REGEX;
+import static com.mahhaus.zeronota.util.StringUtils.NFCE_REGEX;
 
 /**
  * @author josias.soares
  * Create 14/09/2019
  */
-public class MapperBase implements INFCe {
+public class ScrapingBase implements INFCe {
     private enum TipoAmbiente {
         PRODUCAO("1"),
         HOMOLOGACAO("2"),
@@ -43,12 +44,7 @@ public class MapperBase implements INFCe {
     @Override
     public NotaFiscal getNFCe(String url) {
         try {
-            urlRequest = url;
-            tipoAmb = StringUtils.getStringByRegex(url, "tpAmb=\\d{1}").replaceAll("\\D+", "");
-
-            if (tipoAmb.equals(TipoAmbiente.HOMOLOGACAO.descricao)) throw new Exception("Nota emitida em homologação.");
-
-            document = Jsoup.connect(url.contains("http") ? url : "http://" + url).timeout(6000).get();
+            donwloadPage(url);
 
             if (document == null) {
                 System.out.println("Não foi possível buscar a Nota Fiscal");
@@ -65,6 +61,15 @@ public class MapperBase implements INFCe {
             pE.printStackTrace();
             return null;
         }
+    }
+
+    protected void donwloadPage(String url) throws Exception {
+        urlRequest = url;
+        tipoAmb = StringUtils.getStringByRegex(url, "tpAmb=\\d{1}").replaceAll("\\D+", "");
+
+        if (tipoAmb.equals(TipoAmbiente.HOMOLOGACAO.descricao)) throw new Exception("Nota emitida em homologação.");
+
+        document = Jsoup.connect(url.contains("http") ? url : "http://" + url).timeout(6000).get();
     }
 
     protected void doScraping() throws ParseException {
@@ -110,7 +115,7 @@ public class MapperBase implements INFCe {
 //        Elements infos = document.select("div#infos ul");
 //        String chave = infos.get(1).select("li").get(0).text().replaceAll("\\D+", "");
 
-        notaFiscal.setChave(NFCe.getChaveByUrl(urlRequest));
+        notaFiscal.setChave(StringUtils.getStringByRegex(urlRequest, NFCE_REGEX));
     }
 
     private void scrapingSubTotal() {
