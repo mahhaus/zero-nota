@@ -41,59 +41,63 @@ public class NotaFiscal {
     }
 
     public void setTipoMeioPagamento(String tipoMeioPagamento) {
+        String tipo = "";
         if (tipoMeioPagamento.toLowerCase().contains("dito"))
-            tipoMeioPagamento = TipoPagamento.CARTAO_DE_CREDITO.descricao;
+            tipo = TipoPagamento.CARTAO_DE_CREDITO.descricao;
         else if (tipoMeioPagamento.toLowerCase().contains("bito"))
-            tipoMeioPagamento = TipoPagamento.CARTAO_DE_DEBITO.descricao;
+            tipo = TipoPagamento.CARTAO_DE_DEBITO.descricao;
         else if (tipoMeioPagamento.toLowerCase().contains("cheq"))
-            tipoMeioPagamento = TipoPagamento.CHEQUE.descricao;
+            tipo = TipoPagamento.CHEQUE.descricao;
         else if (tipoMeioPagamento.toLowerCase().contains("inheiro"))
-            tipoMeioPagamento = TipoPagamento.DINHEIRO.descricao;
+            tipo = TipoPagamento.DINHEIRO.descricao;
 
 
         switch (tipoMeioPagamento) {
             case "01":
-                tipoMeioPagamento = TipoPagamento.DINHEIRO.descricao;
+                tipo = TipoPagamento.DINHEIRO.descricao;
                 break;
             case "02":
-                tipoMeioPagamento = TipoPagamento.CHEQUE.descricao;
+                tipo = TipoPagamento.CHEQUE.descricao;
                 break;
             case "03":
-                tipoMeioPagamento = TipoPagamento.CARTAO_DE_CREDITO.descricao;
+                tipo = TipoPagamento.CARTAO_DE_CREDITO.descricao;
                 break;
             case "04":
-                tipoMeioPagamento = TipoPagamento.CARTAO_DE_DEBITO.descricao;
+                tipo = TipoPagamento.CARTAO_DE_DEBITO.descricao;
                 break;
             case "05":
-                tipoMeioPagamento = TipoPagamento.CREDITO_LOJA.descricao;
+                tipo = TipoPagamento.CREDITO_LOJA.descricao;
                 break;
             case "10":
-                tipoMeioPagamento = TipoPagamento.VALE_ALIMENTACAO.descricao;
+                tipo = TipoPagamento.VALE_ALIMENTACAO.descricao;
                 break;
             case "11":
-                tipoMeioPagamento = TipoPagamento.VALE_REFEICAO.descricao;
+                tipo = TipoPagamento.VALE_REFEICAO.descricao;
                 break;
             case "12":
-                tipoMeioPagamento = TipoPagamento.VALE_PRESENTE.descricao;
+                tipo = TipoPagamento.VALE_PRESENTE.descricao;
                 break;
             case "13":
-                tipoMeioPagamento = TipoPagamento.VALE_COMBUSTIVEL.descricao;
+                tipo = TipoPagamento.VALE_COMBUSTIVEL.descricao;
                 break;
             case "14":
-                tipoMeioPagamento = TipoPagamento.DUPLICATA_MERCANTIL.descricao;
+                tipo = TipoPagamento.DUPLICATA_MERCANTIL.descricao;
                 break;
             case "15":
-                tipoMeioPagamento = TipoPagamento.BOLETO_BANCARIO.descricao;
+                tipo = TipoPagamento.BOLETO_BANCARIO.descricao;
                 break;
             case "90":
-                tipoMeioPagamento = TipoPagamento.SEM_PAGAMENTO.descricao;
+                tipo = TipoPagamento.SEM_PAGAMENTO.descricao;
                 break;
             case "99":
-                tipoMeioPagamento = TipoPagamento.OUTROS.descricao;
+                tipo = TipoPagamento.OUTROS.descricao;
                 break;
         }
 
-        this.tipoMeioPagamento = tipoMeioPagamento;
+        if (tipo.isEmpty())
+            tipo = TipoPagamento.OUTROS.descricao;
+
+        this.tipoMeioPagamento = tipo;
     }
 
     private enum TipoPagamento {

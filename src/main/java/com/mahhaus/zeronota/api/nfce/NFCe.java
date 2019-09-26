@@ -5,22 +5,11 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.javascript.background.JavaScriptJobManager;
 import com.mahhaus.zeronota.api.nfce.mapper.*;
 import com.mahhaus.zeronota.util.StringUtils;
-import org.apache.http.protocol.RequestUserAgent;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Base64;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.mahhaus.zeronota.util.StringUtils.NFCE_REGEX;
 
 /**
  * Created by josias.soares on 01/02/2018.
@@ -195,7 +184,7 @@ public class NFCe {
 //            case PropsEstados.Codigo.SC:
 //                return new MapperSC().getNfce(pDocument);
             case PropsEstados.Codigo.RS:
-                return new MapperRS().getNFCe(url);
+                return new ScrapingRS().getNFCe(url);
 //            case PropsEstados.Codigo.MS:
 //                return new MapperMS().getNfce(pDocument);
 //            case PropsEstados.Codigo.MT:

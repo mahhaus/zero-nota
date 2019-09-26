@@ -44,6 +44,7 @@ public class ScrapingBase implements INFCe {
     @Override
     public NotaFiscal getNFCe(String url) {
         try {
+            urlRequest = url;
             donwloadPage(url);
 
             if (document == null) {
@@ -64,7 +65,6 @@ public class ScrapingBase implements INFCe {
     }
 
     protected void donwloadPage(String url) throws Exception {
-        urlRequest = url;
         tipoAmb = StringUtils.getStringByRegex(url, "tpAmb=\\d{1}").replaceAll("\\D+", "");
 
         if (tipoAmb.equals(TipoAmbiente.HOMOLOGACAO.descricao)) throw new Exception("Nota emitida em homologação.");
@@ -81,55 +81,25 @@ public class ScrapingBase implements INFCe {
         scrapingDataEmissao();
     }
 
-    private void scrapingDataEmissao() throws ParseException {
-        Elements infos = document.select("div#infos ul");
-
-        String dataEmissaoText = StringUtils.getStringByRegex(infos.text(), DATETIME_REGEX);
-        Date dataEmissao = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").parse(dataEmissaoText.trim());
-        notaFiscal.setDataEmissao(dataEmissao);
-    }
-
-    private void scrapingOutrasInfos() {
-        try {
-            Elements infos = document.select("div#infos ul");
-//            CONSUMIDOR
-            String consumidorCPF = infos.get(0).select("li").get(0).text().replaceAll("\\D+", "");
-
-            if (!consumidorCPF.isEmpty()) {
-                String consumidorNome = infos.get(0).select("li").get(1).text();
-                String consumidorEndereco = infos.get(0).select("li").get(2).text();
-            }
-
-//            OUTRAS INFO
-            String outrasInformacoes = infos.get(2).select("li").get(0).text();
-
-//            INFORMACOES GERAIS
-            String tipoEmissao = infos.get(3).select("li").get(0).children().get(0).text();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void scrapingChave() {
+    protected void scrapingChave() {
 //        Elements infos = document.select("div#infos ul");
 //        String chave = infos.get(1).select("li").get(0).text().replaceAll("\\D+", "");
 
         notaFiscal.setChave(StringUtils.getStringByRegex(urlRequest, NFCE_REGEX));
     }
 
-    private void scrapingSubTotal() {
-        Elements subtotal = document.select("div#totalNota");
+    protected void scrapingCabecalho() {
+        Elements cabecalho = document.select("div#conteudo");
 
-        notaFiscal.setTotalItens(NumberUtil.getDouble(subtotal.select("div#linhaTotal span.totalNumb").first().text()));
-        notaFiscal.setValorAPagar(NumberUtil.getDouble(subtotal.select("span.totalNumb.txtMax").text()));
-        notaFiscal.setTipoMeioPagamento(subtotal.select("label.tx").text());
-        notaFiscal.setValorPagamento(NumberUtil.getDouble(subtotal.select("div.txtRight").first().children().get(3).select("span").text()));
-        notaFiscal.setValorTributo(NumberUtil.getDouble(subtotal.select("span.totalNumb.txtObs").text()));
-
+        String estabelecimento = cabecalho.select("div.txtCenter div#u20").text();
+        String cnpj = cabecalho.select("div.txtCenter div.text").first().text().replaceAll("\\D+", "");
+        String endereco = cabecalho.select("div.txtCenter div.text").next().text();
+        notaFiscal.setEstabelecimento(estabelecimento);
+        notaFiscal.setCnpj(cnpj);
+        notaFiscal.setEndereco(endereco);
     }
 
-    private void scrapingProdutos() {
+    protected void scrapingProdutos() {
         Elements itens = document.select("table#tabResult tbody");
 
         List<Produto> lProdutos = new ArrayList<>();
@@ -153,14 +123,44 @@ public class ScrapingBase implements INFCe {
 
     }
 
-    private void scrapingCabecalho() {
-        Elements cabecalho = document.select("div#conteudo");
+    protected void scrapingSubTotal() {
+        Elements subtotal = document.select("div#totalNota");
 
-        String estabelecimento = cabecalho.select("div.txtCenter div#u20").text();
-        String cnpj = cabecalho.select("div.txtCenter div.text").first().text().replaceAll("\\D+", "");
-        String endereco = cabecalho.select("div.txtCenter div.text").next().text();
-        notaFiscal.setEstabelecimento(estabelecimento);
-        notaFiscal.setCnpj(cnpj);
-        notaFiscal.setEndereco(endereco);
+        notaFiscal.setTotalItens(NumberUtil.getDouble(subtotal.select("div#linhaTotal span.totalNumb").first().text()));
+        notaFiscal.setValorAPagar(NumberUtil.getDouble(subtotal.select("span.totalNumb.txtMax").text()));
+        notaFiscal.setTipoMeioPagamento(subtotal.select("label.tx").text());
+        notaFiscal.setValorPagamento(NumberUtil.getDouble(subtotal.select("div.txtRight").first().children().get(3).select("span").text()));
+        notaFiscal.setValorTributo(NumberUtil.getDouble(subtotal.select("span.totalNumb.txtObs").text()));
+
+    }
+
+    protected void scrapingDataEmissao() throws ParseException {
+        Elements infos = document.select("div#infos ul");
+
+        String dataEmissaoText = StringUtils.getStringByRegex(infos.text(), DATETIME_REGEX);
+        Date dataEmissao = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").parse(dataEmissaoText.trim());
+        notaFiscal.setDataEmissao(dataEmissao);
+    }
+
+    protected void scrapingOutrasInfos() {
+        try {
+            Elements infos = document.select("div#infos ul");
+//            CONSUMIDOR
+            String consumidorCPF = infos.get(0).select("li").get(0).text().replaceAll("\\D+", "");
+
+            if (!consumidorCPF.isEmpty()) {
+                String consumidorNome = infos.get(0).select("li").get(1).text();
+                String consumidorEndereco = infos.get(0).select("li").get(2).text();
+            }
+
+//            OUTRAS INFO
+            String outrasInformacoes = infos.get(2).select("li").get(0).text();
+
+//            INFORMACOES GERAIS
+            String tipoEmissao = infos.get(3).select("li").get(0).children().get(0).text();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
