@@ -185,8 +185,8 @@ public class NFCe {
 //                return new MapperSC().getNfce(pDocument);
             case PropsEstados.Codigo.RS:
                 return new ScrapingRS().getNFCe(url);
-//            case PropsEstados.Codigo.MS:
-//                return new MapperMS().getNfce(pDocument);
+            case PropsEstados.Codigo.MS:
+                return new ScrapingMS().getNFCe(url);
 //            case PropsEstados.Codigo.MT:
 //                return new MapperMT().getNfce(pDocument);
 //            case PropsEstados.Codigo.GO:

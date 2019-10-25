@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
 /**
  * @author josias.soares
@@ -42,12 +43,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         AuthenticationManager authManager = authenticationManager();
 
         http
+                .headers()
+//                .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "*"))
+                .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Headers", "Cache-Control,Access-Control-Allow-Headers,  Pragma, Origin, Authorization, Content-Type, X-Requested-With"))
+                .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Methods", "OPTIONS, DELETE, GET, PUT, POST"))
+                .and()
+
                 .authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/v1/login").permitAll()
                 .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**", "/webjars/**")
                 .permitAll()
-                .anyRequest().authenticated()
-                .and().csrf().disable()
+                .anyRequest().authenticated().and()
+                .cors().and()
+                .csrf().disable()
                 .addFilter(new JwtAuthenticationFilter(authManager))
                 .addFilter(new JwtAuthorizationFilter(authManager, userDetailsService))
                 .exceptionHandling()
@@ -56,11 +65,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 // Removendo os cookies
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        BCryptPasswordEncoder encoder  = new BCryptPasswordEncoder();
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
         auth.userDetailsService(userDetailsService).passwordEncoder(encoder);
     }

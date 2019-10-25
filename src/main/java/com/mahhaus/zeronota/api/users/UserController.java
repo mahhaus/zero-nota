@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.annotation.processing.SupportedOptions;
 import java.net.URI;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class UserController {
 
     @Secured({ "ROLE_ADMIN" })
     @GetMapping()
+//    @CrossOrigin(origins = "*")
     public ResponseEntity get() {
         List<UserDTO> list = service.getUsers();
         return ResponseEntity.ok(list);
